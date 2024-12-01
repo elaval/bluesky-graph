@@ -8,6 +8,53 @@ toc: false
 ${vis}
 </div>
 
+<style>
+  /* Optional: Add a subtle hover effect to the cards */
+  .card:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  .card-title {
+  word-break: break-word; /* Default for regular breaks */
+  overflow-wrap: anywhere; /* Ensures breaking is flexible */
+}
+
+.card-title  {
+  word-break: keep-all; /* Ensures full word retained */
+}
+</style>
+
+
+<div class="container my-4">
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    ${_.chain(data)
+      .sortBy(d => d.followers_count)
+      .map(d => html`
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            <div class="d-flex justify-content-center mt-3">
+              <img src="${d.avatar_url}" class="rounded-circle" alt="${d.handle}" style="width: 100px; height: 100px; object-fit: cover;">
+            </div>
+            <div class="card-body text-center">
+              <h5 class="card-title">@${d.handle}</h5>
+              <p class="card-text">
+                <span class="badge bg-primary">
+                  Followers: ${d.followers_count}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      `)
+      .value()}
+  </div>
+</div>
+
+
+
+
+
 ```js
 display(vis)
 ```
@@ -20,7 +67,7 @@ const vis = CustomForceGraph(graph, {
   nodeStrength: -30,
   linkStrength: 0.1,
   width: width,
-  height: 1000,
+  height: width,
   nodeImage: (d) => d.avatar_url // Use avatar images
 })
 ```
