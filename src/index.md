@@ -37,11 +37,15 @@ ${vis}
               <img src="${d.avatar_url}" class="rounded-circle" alt="${d.handle}" style="width: 100px; height: 100px; object-fit: cover;">
             </div>
             <div class="card-body text-center">
-              <h5 class="card-title">@${d.handle}</h5>
+              <h5 class="card-title">${d.displayName}</h5>
+              <p class="card-text"><a href="https://bsky.app/profile/${d.handle}" target="_blank">@${d.handle}</a></p>
               <p class="card-text">
                 <span class="badge bg-primary">
                   Followers: ${d.followers_count}
                 </span>
+                <p class="small">
+                  ${d.description}
+                </p>
               </p>
             </div>
           </div>
@@ -62,7 +66,7 @@ display(vis)
 ```js
 const vis = CustomForceGraph(graph, {
   nodeId: (d) => d.id,
-  nodeTitle: (d) => `${d.id}\nFollowers: ${d.followers_count}`,
+  nodeTitle: (d) => `${d.displayName}\n@${d.id}\nFollowers: ${d3.format(".2s")(d.followers_count)}`,
   nodeRadius: (d) => Math.sqrt(d.followers_count) / 50 + 5, // Adjust scaling as needed
   nodeStrength: -30,
   linkStrength: 0.1,
@@ -84,6 +88,7 @@ data = data.filter((d) => !d.handle.match(/bsky.app/));
 const graph = ({
   nodes: data.map((d) => ({
     id: d.handle,
+    displayName: d.displayName,
     followers_count: d.followers_count,
     avatar_url: d.avatar_url
     // Add any other attributes you need
