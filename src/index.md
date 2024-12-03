@@ -114,7 +114,6 @@ const nodesDict = (() => {
   return dict
 })()
 
-display(nodesDict);
 
 function numberOfLinks(target) {
   const targetLinks = _.chain(graph_raw.links)
