@@ -4,6 +4,14 @@ toc: false
 
 <h1>Bluesky graph</h1>
 
+```js
+const selectOptions = _.sortBy(myFollowers, (d) => -numberOfLinks(d));
+
+const selectTargetFollowers = view(Inputs.select(selectOptions, {  label: "Select one",
+  format: (d) => `${d} (${numberOfLinks(d)})`}));
+
+```
+
 <div class="card">
 ${vis}
 </div>
@@ -28,7 +36,7 @@ ${vis}
 
 <div class="container my-4">
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-    ${_.chain(data)
+    ${_.chain(graph_raw.nodes)
       .sortBy(d => d.followers_count)
       .map(d => html`
         <div class="col">
@@ -38,7 +46,7 @@ ${vis}
             </div>
             <div class="card-body text-center">
               <h5 class="card-title">${d.displayName}</h5>
-              <p class="card-text"><a href="https://bsky.app/profile/${d.handle}" target="_blank">@${d.handle}</a></p>
+              <p class="card-text"><a href="https://bsky.app/profile/${d.id}" target="_blank">@${d.id}</a></p>
               <p class="card-text">
                 <span class="badge bg-primary">
                   Followers: ${d.followers_count}
@@ -64,48 +72,99 @@ display(vis)
 ```
 
 ```js
-const vis = CustomForceGraph(graph, {
+const vis = CustomForceGraph(targetGraph, {
   nodeId: (d) => d.id,
-  nodeTitle: (d) => `${d.displayName}\n@${d.id}\nFollowers: ${d3.format(".2s")(d.followers_count)}`,
-  nodeRadius: (d) => Math.sqrt(d.followers_count) / 50 + 5, // Adjust scaling as needed
-  nodeStrength: -30,
+  nodeTitle: (d) => `${d.id}\nFollowers: ${d.followers_count}`,
+  nodeRadius: (d) => sizeScale(d.followers_count),
+  nodeStrength: -500 / Math.sqrt(targetGraph.nodes.length),
   linkStrength: 0.1,
   width: width,
-  height: width,
+  height: 1000,
   nodeImage: (d) => d.avatar_url // Use avatar images
+
 })
+```
+
+```js
+
+const extent = d3.extent(targetGraph.nodes, (d) => d.followers_count);
+
+const sizeScale = d3
+    .scaleSqrt()
+    .domain(extent)
+    .range([5, Math.log10(targetGraph.nodes.length) * 20]);
+
 ```
 
 
 ```js
+const rootUser = "elaval.bsky.social";
 
-let data = await d3.json(
-  "https://raw.githubusercontent.com/elaval/BskyGraph/refs/heads/main/user_data_with_connections.json"
+let graph_raw = await d3.json(
+  "https://raw.githubusercontent.com/elaval/BskyGraph/refs/heads/main/graph.json"
 );
 
-data = data.filter((d) => !d.handle.match(/bsky.app/));
+const nodesDict = (() => {
+  const dict = {};
 
-const graph = ({
-  nodes: data.map((d) => ({
-    id: d.handle,
-    displayName: d.displayName,
-    followers_count: d.followers_count,
-    avatar_url: d.avatar_url
-    // Add any other attributes you need
-  })),
-  links: data.flatMap(
-    (d) =>
-      d.connections &&
-      d.connections
-        .filter((d) => data.map((d) => d.handle).includes(d))
-        .map((targetHandle) => ({
-          source: d.handle,
-          target: targetHandle
-        }))
-  )
-})
+  _.chain(graph_raw.nodes)
+    .each((d) => (dict[d.id] = d))
+    .value();
+
+  return dict
+})()
+
+display(nodesDict);
+
+function numberOfLinks(target) {
+  const targetLinks = _.chain(graph_raw.links)
+    .filter((d) => nodesDict[d.source]["followers_count"] >= 1000)
+    .value();
+  return _.chain(targetLinks)
+    .filter((d) => d.target == target)
+    .value()["length"];
+}
+
+const myFollowers = (() => {
+  return _.chain(graph_raw.links)
+    .filter((d) => d.target == rootUser)
+    .map((d) => [d.source, d.target])
+    .flatten()
+    .uniq()
+    .value();
+})()
+
+
 
 ```
+
+
+```js
+const targetGraph = (() => {
+  const targetLinks = _.chain(graph_raw.links)
+    .filter(
+      (d) =>
+        d.target == selectTargetFollowers &&
+        nodesDict[d.source]["followers_count"] >= 1000
+    )
+    .value();
+
+  const targetHandles = _.chain(targetLinks)
+    .map((d) => [d.source, d.target])
+    .flatten()
+    .uniq()
+    .value();
+
+  const nodes = _.chain(graph_raw.nodes)
+    .filter((d) => targetHandles.includes(d.id))
+    .value();
+
+  return { nodes: nodes, links: targetLinks };
+})()
+
+```
+
+
 
 ```js
 /*
