@@ -7,8 +7,11 @@ toc: false
 ```js
 const selectOptions = _.sortBy(myFollowers, (d) => -numberOfLinks(d));
 
-const selectTargetFollowers = view(Inputs.select(selectOptions, {  label: "Select one",
-  format: (d) => `${d} (${numberOfLinks(d)})`}));
+const selectTargetFollowers = view(Inputs.select(selectOptions, {  
+  label: "Select one",
+  format: (d) => `${d} (${numberOfLinks(d)})`,
+  value: `elaval.bsky.social`
+  }));
 
 ```
 
