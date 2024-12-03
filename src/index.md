@@ -37,6 +37,7 @@ ${vis}
 <div class="container my-4">
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
     ${_.chain(graph_raw.nodes)
+      .slice(-10)
       .sortBy(d => d.followers_count)
       .map(d => html`
         <div class="col">
