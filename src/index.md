@@ -2,18 +2,91 @@
 toc: false
 ---
 
-<h1>Bluesky graph</h1>
+```js
+const umbralSeguidores = 1000;
+````
+
+<h1>Bluesky Graph</h1>
+
+<p>
+  En Bluesky soy 
+  <a href="https://bsky.app/profile/elaval.bsky.social" target="_blank">@elaval.bsky.social</a>, 
+  y comencé mi aventura en esta plataforma el 16 de noviembre de 2024. 
+  Al principio, me costaba entender quiénes estaban en mi "vecindario". 
+  ¿Quiénes son los usuarios más activos alrededor de mí? 
+</p>
+
+<p>
+  Por curiosidad, decidí explorar quiénes eran los usuarios con cierto número de seguidores 
+  (por ejemplo, más de <b>${umbralSeguidores}</b>). Para ello, utilicé las herramientas para desarrolladores 
+  de Bluesky, como su SDK para Python, y seguí esta estrategia:
+</p>
+
+<ul>
+  <li>
+    Obtener los datos de los usuarios que me siguen 
+    (<b>${nodesDict[rootUser]["followers_count"]}</b> según los últimos datos mostrados en esta página) 
+    e identificar cuáles de ellos tenían más de <b>${umbralSeguidores}</b> seguidores.
+  </li>
+  <li>
+    Para cada uno de mis seguidores, explorar a sus propios seguidores y encontrar aquellos 
+    con más de <b>1,000</b> seguidores.
+  </li>
+</ul>
+
+<p>
+  Siguiendo esta estrategia, logré identificar a un total de <b>${usuariosSobreUmbralSeguidores.length}</b> usuarios 
+  con más de <b>${umbralSeguidores}</b> seguidores. ¡Una forma fascinante de mapear mi vecindario!
+</p>
+
+<h3>¿Quieres conocerlos?</h3>
+
+<p>
+  A continuación, puedes seleccionar una cuenta de las que tienen al menos un seguidor con 
+  <b>${umbralSeguidores}</b> o más seguidores. Explora sus conexiones y descubre quién está en su red.
+</p>
+
+<!-- Dropdown for selecting a target follower -->
+<div>
 
 ```js
-const selectOptions = _.sortBy(myFollowers, (d) => -numberOfLinks(d));
+const selectOptions = _.chain(myFollowers)
+.filter( (d) => numberOfLinks(d) > 0)
+.sortBy(d => d)
+.value();
 
-const selectTargetFollowers = view(Inputs.select(selectOptions, {  
+const selectTargetFollower = view(Inputs.select(selectOptions, {  
   label: "Select one",
-  format: (d) => `${d} (${numberOfLinks(d)})`,
+  format: (d) => `${d}`,
   value: `elaval.bsky.social`
   }));
-
+  
 ```
+</div>
+
+```js
+const selectOptions2 = _.chain(myFollowers)
+.filter( (d) => numberOfLinks(d) > 0)
+.sortBy(d => d)
+.value();
+```
+
+```js
+const selectedNode = nodesDict[selectTargetFollower]
+```
+
+<!-- Display details about the selected node -->
+<h4>${selectedNode.displayName} (${selectedNode.id})</h4>
+<p>
+  Este usuario tenía aproximadamente <b>${d3.format(".3s")(selectedNode.followers_count)}</b> seguidores 
+  al momento de obtener los datos. Entre sus seguidores, 
+  <b>${targetGraph.nodes.length - 1}</b> tienen a su vez más de <b>${umbralSeguidores}</b> seguidores.
+</p>
+
+<p>
+  Aquí puedes ver las imágenes de esos <b>${targetGraph.nodes.length - 1}</b> usuarios. Más abajo, 
+  encontrarás una ficha con información más detallada de cada uno.
+</p>
 
 <div class="card">
 ${vis}
@@ -39,8 +112,7 @@ ${vis}
 
 <div class="container my-4">
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-    ${_.chain(graph_raw.nodes)
-      .slice(-10)
+    ${_.chain(targetGraph.nodes)
       .sortBy(d => d.followers_count)
       .map(d => html`
         <div class="col">
@@ -80,10 +152,10 @@ const vis = CustomForceGraph(targetGraph, {
   nodeId: (d) => d.id,
   nodeTitle: (d) => `${d.id}\nFollowers: ${d.followers_count}`,
   nodeRadius: (d) => sizeScale(d.followers_count),
-  nodeStrength: -500 / Math.sqrt(targetGraph.nodes.length),
+  nodeStrength: -width / Math.sqrt(targetGraph.nodes.length),
   linkStrength: 0.1,
   width: width,
-  height: 1000,
+  height: width,
   nodeImage: (d) => d.avatar_url // Use avatar images
 
 })
@@ -118,6 +190,9 @@ const nodesDict = (() => {
   return dict
 })()
 
+const usuariosSobreUmbralSeguidores = _.chain(graph_raw.nodes)
+.filter(d => d["followers_count"] >= umbralSeguidores)
+.value()
 
 function numberOfLinks(target) {
   const targetLinks = _.chain(graph_raw.links)
@@ -147,7 +222,7 @@ const targetGraph = (() => {
   const targetLinks = _.chain(graph_raw.links)
     .filter(
       (d) =>
-        d.target == selectTargetFollowers &&
+        d.target == selectTargetFollower &&
         nodesDict[d.source]["followers_count"] >= 1000
     )
     .value();
