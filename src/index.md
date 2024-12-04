@@ -1,6 +1,23 @@
 ---
 toc: false
+sql:
+  nodes: https://raw.githubusercontent.com/elaval/BskyGraph/refs/heads/main/nodes.parquet
+  links: https://raw.githubusercontent.com/elaval/BskyGraph/refs/heads/main/links.parquet
 ---
+
+---
+
+```sql id=nodes_sql
+SELECT *
+FROM nodes
+```
+
+```sql id=links_sql
+SELECT *
+FROM links
+````
+
+
 
 ```js
 const umbralSeguidores = 1000;
@@ -176,9 +193,12 @@ const sizeScale = d3
 ```js
 const rootUser = "elaval.bsky.social";
 
-let graph_raw = await d3.json(
-  "https://raw.githubusercontent.com/elaval/BskyGraph/refs/heads/main/graph.json"
-);
+
+const graph_raw = {
+  nodes: [...nodes_sql],
+  links: [...links_sql],
+}
+
 
 const nodesDict = (() => {
   const dict = {};
