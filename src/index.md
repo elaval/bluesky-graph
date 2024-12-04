@@ -5,7 +5,6 @@ sql:
   links: https://raw.githubusercontent.com/elaval/BskyGraph/refs/heads/main/links.parquet
 ---
 
----
 
 ```sql id=nodes_sql
 SELECT *
@@ -73,7 +72,7 @@ const selectOptions = _.chain(myFollowers)
 .value();
 
 const selectTargetFollower = view(Inputs.select(selectOptions, {  
-  label: "Select one",
+  label: "Seleccione una persona",
   format: (d) => `${d}`,
   value: `elaval.bsky.social`
   }));
@@ -129,7 +128,34 @@ ${vis}
 
 <div class="container my-4">
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    ${[nodesDict[selectTargetFollower]]
+      .map(d => html`
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            <div class="d-flex justify-content-center mt-3">
+              <img src="${d.avatar_url}" class="rounded-circle" alt="${d.handle}" style="width: 100px; height: 100px; object-fit: cover;">
+            </div>
+            <div class="card-body text-center">
+              <h5 class="card-title">${d.displayName}</h5>
+              <p class="card-text"><a href="https://bsky.app/profile/${d.id}" target="_blank">@${d.id}</a></p>
+              <p class="card-text">
+                <span class="badge bg-primary">
+                  Followers: ${d.followers_count}
+                </span>
+                <p class="small">
+                  ${d.description}
+                </p>
+              </p>
+            </div>
+          </div>
+        </div>
+      `)
+      }
+  </div>  
+  Seguidores de <b>${selectTargetFollower}</b> que tienen más de ${umbralSeguidores} seguidores:
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
     ${_.chain(targetGraph.nodes)
+      .filter(d => d.id !== selectTargetFollower)
       .sortBy(d => d.followers_count)
       .map(d => html`
         <div class="col">
