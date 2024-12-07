@@ -111,31 +111,20 @@ const selectedUser = view(createAutocomplete(_.sortBy([...master], d => d.handle
 
 <div class="card">
 <style>
-  /* Target the tooltip group */
+/* Light mode styles */
 g[aria-label="tip"] {
-  --plot-background: white; /* Background color of the tooltip */
-  --plot-border-color: #ccc; /* Border color */
-  --plot-text-color: black; /* Text color */
+  color: black; /* Sets currentColor for text */
+  --plot-background: white; /* Tooltip background */
+  stroke: black; /* Tooltip border color */
 }
 
-/* Style the tooltip's background (path) */
-g[aria-label="tip"] path {
-  fill: var(--plot-background); /* Use the CSS variable or set directly */
-  stroke: var(--plot-border-color);
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.2)); /* Optional shadow */
-}
-
-/* Style the tooltip text */
-g[aria-label="tip"] text {
-  fill: var(--plot-text-color); /* Set text color */
-  font-size: 12px; /* Adjust font size */
-  font-family: sans-serif; /* Set a readable font */
-}
-
-/* Style individual <tspan> elements inside the tooltip */
-g[aria-label="tip"] text tspan {
-  alignment-baseline: middle;
-  line-height: 1.2;
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+  g[aria-label="tip"] {
+    color: white; /* Updates currentColor to white in dark mode */
+    --plot-background: #333; /* Dark background */
+    stroke: white; /* Tooltip border color */
+  }
 }
 </style>
 ${chart}
