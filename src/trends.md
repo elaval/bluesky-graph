@@ -337,7 +337,7 @@ function createAutocomplete(items = [], {
   defaultValue = null,
   label = null,
   description = null,
-  placeholderText = "Type to search...",
+  placeholderText = "Escribe para buscar...",
   fetchAutoSuggest = async (value) => {
     // Simulate fetching filtered results
     return items.filter(d => searchFields.some(field => {
