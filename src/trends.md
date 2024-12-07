@@ -118,7 +118,7 @@ ${chart}
 
 ```js
 const toggleInicio = view(Inputs.toggle({
-  label: "Solo desde el inicio del monitoreo",
+  label: "Escala de tiempo desde que la cuenta fue creada",
   value: false
 }))
 ```
@@ -153,7 +153,7 @@ const chart = (() => {
     .value() || [];
 
   // Initial data includes the user's creation date and their first recorded follower count
-  const initialData = toggleInicio ? [] : selectedUser && _.concat(
+  const initialData = !toggleInicio ? [] : selectedUser && _.concat(
     {
       timestamp: new Date(userProfiles[selectedUser].created_at),
       followers_count: 0
@@ -166,7 +166,7 @@ const chart = (() => {
 
   return Plot.plot({
     title: `Evolución de número de seguidores de ${selectedUser}`,
-    subtitle: `La línea roja punteada es una proyección desde el momento de creación de la cuenta hasta el inicio del monitoreo.`,
+    subtitle: toggleInicio && `La línea roja punteada es una proyección desde el momento de creación de la cuenta hasta el inicio del monitoreo.` || `La escala de tiempo se inicia cuando comenzó el monitoreo para esta cuenta`,
     caption: `Fuente de datos: Datos recolectados por @elava.bsky.social utilizano API de Bluesahy (repositorio https://github.com/elaval/BskyFollowersTrend)`,
     height: 500,
     x: { type: "time", label:"Fecha" },
