@@ -44,18 +44,15 @@ const defaultUser = `elaval.bsky.social`
 # Número de seguidores en Bluesky
 ## Evolución en el tiempo
 
-**Última actualización:** ${moment.utc(_.chain([...master]).map(d => d.timestamp).max().value()).format("D MMM YYYY, HH:mm")}
+**Última actualización:** ${moment(_.chain([...master]).map(d => d.timestamp).max().value()).format("D MMM YYYY, HH:mm")}
 
-¿Te interesa conocer cómo ha evolucionado el número de tus seguidores a lo largo del tiempo?
+¿Te interesa conocer cómo ha evolucionado el número de tus seguidores a lo largo del tiempo?  
 
-Desde el 4 de diciembre de 2024, un proceso automático monitorea cuatro veces al día la cantidad de seguidores de un conjunto de cuentas en Bluesky y almacena estos datos. Esta página muestra cómo varía el número de seguidores de las cuentas monitoreadas a lo largo del tiempo.
+He construido un proceso automático que, desde el 4 de diciembre de 2024, monitorea cuatro veces al día la cantidad de seguidores de un conjunto de cuentas en Bluesky y almacena estos datos. Esta página muestra cómo varía el número de seguidores de las cuentas monitoreadas a lo largo del tiempo.  
 
-Por el momento, se incluyen las cuentas que siguen a [@elaval.bsky.social](https://bsky.app/profile/elaval.bsky.social). El monitoreo comenzó el 4 de diciembre de 2024, o bien el día en que la cuenta empezó a seguir a @elaval.bsky.social si esto ocurrió después de esa fecha.
+Por el momento, se incluyen las cuentas que me siguen ([@elaval.bsky.social](https://bsky.app/profile/elaval.bsky.social)). El monitoreo comenzó el 4 de diciembre de 2024 o el día en que la cuenta empezó a seguirme, si esto ocurrió después de esa fecha.  
 
-Este proyecto es una exploración destinada a analizar el comportamiento de los seguidores en Bluesky y a probar distintos métodos para presentar y compartir la información. En el futuro, podrían realizarse modificaciones en la frecuencia de monitoreo o en los criterios utilizados para seleccionar las cuentas a seguir (por ahora la intención es partir de una base sencilla).
-
-    
-
+Este proyecto es una exploración destinada a analizar el comportamiento de los seguidores en Bluesky y a probar distintos métodos para presentar y compartir la información. En el futuro, podrían realizarse modificaciones en la frecuencia de monitoreo o en los criterios utilizados para seleccionar las cuentas a seguir (por ahora, la intención es partir de una base sencilla).
 
 
 ```js
@@ -111,6 +108,7 @@ const selectedUser = view(createAutocomplete(_.sortBy([...master], d => d.handle
   }
 </style>
 
+
 <div class="card">
 ${chart}
 </div>
@@ -118,7 +116,12 @@ ${chart}
   </div>
 </div>
 
-
+```js
+const toggleInicio = view(Inputs.toggle({
+  label: "Solo desde el inicio del monitoreo",
+  value: false
+}))
+```
 
 ```js
 // Group the followers_log data by handle for quicker lookups.
@@ -150,7 +153,7 @@ const chart = (() => {
     .value() || [];
 
   // Initial data includes the user's creation date and their first recorded follower count
-  const initialData = selectedUser && _.concat(
+  const initialData = toggleInicio ? [] : selectedUser && _.concat(
     {
       timestamp: new Date(userProfiles[selectedUser].created_at),
       followers_count: 0
