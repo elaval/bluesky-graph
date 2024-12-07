@@ -432,31 +432,56 @@ function createAutocomplete(items = [], {
 } = {}) {
   const container = document.createElement("div");
   container.style.position = "relative";
-  container.style.width = "100%";
+  container.style.width = "500px";
   container.style.fontFamily = "sans-serif";
   container.value = ""; 
 
+  // ... (Código para label y description)
+
   const input = document.createElement("input");
-  input.type = "text";
-  input.style.width = "100%";
-  input.style.boxSizing = "border-box";
-  input.placeholder = "Type to search...";
-  input.style.padding = "8px";
-  input.style.border = "1px solid #ccc";
-  input.style.borderRadius = "4px";
+  // ... (Estilos y configuración del input)
   container.appendChild(input);
 
   const dropdown = document.createElement("div");
-  dropdown.style.position = "fixed"; // Cambiado a 'fixed'
+  dropdown.style.position = "absolute";
+  dropdown.style.width = "100%";
+  dropdown.style.boxSizing = "border-box";
+  dropdown.style.border = "1px solid #ccc";
+  dropdown.style.borderTop = "none";
   dropdown.style.background = "#fff";
   dropdown.style.zIndex = "999";
   dropdown.style.display = "none";
-  dropdown.style.maxHeight = "300px"; 
+  dropdown.style.maxHeight = "300px";
   dropdown.style.overflowY = "auto";
-  dropdown.style.border = "1px solid #ccc";
-  dropdown.style.borderRadius = "0 0 4px 4px";
+  dropdown.style.borderRadius = "4px";
   dropdown.style.whiteSpace = "nowrap";
+  dropdown.style.top = "100%";
   container.appendChild(dropdown);
+
+  // Establecer valor predeterminado si se proporciona
+  if (defaultValue) {
+    input.value = defaultValue;
+    container.value = defaultValue;
+    container.dispatchEvent(new Event("input"));
+  }
+
+  // Función para ajustar la posición del dropdown
+  function updateDropdownPosition() {
+    const rect = input.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+      // Mostrar encima del input
+      dropdown.style.bottom = `${input.offsetHeight}px`;
+      dropdown.style.top = "auto";
+    } else {
+      // Mostrar debajo del input
+      dropdown.style.top = "100%";
+      dropdown.style.bottom = "auto";
+    }
+  }
 
   function clearDropdown() {
     dropdown.innerHTML = "";
@@ -481,33 +506,44 @@ function createAutocomplete(items = [], {
         option.style.padding = "8px";
         option.style.cursor = "pointer";
         option.style.borderBottom = "1px solid #eee";
+        option.style.whiteSpace = "nowrap";
         option.textContent = formatFn(d);
 
-        option.addEventListener("touchstart", () => { // Usa touchstart para móviles
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const selectEvent = isTouchDevice ? 'touchstart' : 'mousedown';
+
+        option.addEventListener(selectEvent, () => {
           input.value = d.handle;
           container.value = d.handle;
           container.dispatchEvent(new Event("input"));
           clearDropdown();
         });
 
+        option.addEventListener("mouseover", () => {
+          option.style.background = "#f0f0f0";
+        });
+
+        option.addEventListener("mouseout", () => {
+          option.style.background = "#fff";
+        });
+
         dropdown.appendChild(option);
       });
 
       dropdown.style.display = "block";
-      updateDropdownPosition(); // Asegura que el dropdown esté correctamente posicionado
+      updateDropdownPosition(); // Actualiza la posición al mostrar el dropdown
     }
   }
 
-  function updateDropdownPosition() {
-    const rect = input.getBoundingClientRect();
-    dropdown.style.top = `${rect.bottom}px`;
-    dropdown.style.left = `${rect.left}px`;
-    dropdown.style.width = `${rect.width}px`;
-  }
-
   input.addEventListener("focus", () => {
-    input.scrollIntoView({ behavior: "smooth", block: "center" });
-    updateDropdownPosition();
+    if (input.value === container.value) {
+      input.value = "";
+    }
+
+    // Desplaza el input a la vista
+    setTimeout(() => {
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
   });
 
   input.addEventListener("input", () => {
@@ -518,6 +554,9 @@ function createAutocomplete(items = [], {
   input.addEventListener("blur", () => {
     setTimeout(clearDropdown, 150);
   });
+
+  // Actualiza la posición del dropdown al redimensionar la ventana
+  window.addEventListener("resize", updateDropdownPosition);
 
   return container;
 }
