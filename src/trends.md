@@ -197,99 +197,8 @@ const chart = (() => {
 ```
 
 ```js
-// This function creates a simple autocomplete widget.
-// It returns a container element which Observable can treat as an input view.
-// When a user selects an item from the dropdown, container.value is updated and an input event is dispatched.
-function createAutocomplete_(items = []) {
-  const container = document.createElement("div");
-  container.style.position = "relative";
-  container.style.width = "250px";
-  container.style.fontFamily = "sans-serif";
-  container.value = ""; // Initialize for Observable
 
-  // Create text input
-  const input = document.createElement("input");
-  input.type = "text";
-  input.style.width = "100%";
-  input.style.boxSizing = "border-box";
-  input.placeholder = "Type to search...";
-  input.style.padding = "8px";
-  input.style.border = "1px solid #ccc";
-  input.style.borderRadius = "4px";
-  container.appendChild(input);
-
-  // Create dropdown container
-  const dropdown = document.createElement("div");
-  dropdown.style.position = "absolute";
-  dropdown.style.width = "100%";
-  dropdown.style.boxSizing = "border-box";
-  dropdown.style.border = "1px solid #ccc";
-  dropdown.style.borderTop = "none";
-  dropdown.style.background = "#fff";
-  dropdown.style.zIndex = "999";
-  dropdown.style.display = "none";
-  dropdown.style.maxHeight = "150px";
-  dropdown.style.overflowY = "auto";
-  dropdown.style.borderRadius = "0 0 4px 4px";
-  container.appendChild(dropdown);
-
-  function clearDropdown() {
-    dropdown.innerHTML = "";
-    dropdown.style.display = "none";
-  }
-
-  function updateDropdown(value) {
-    clearDropdown();
-    if (!value) return;
-
-    const filtered = items
-      .filter(item => item.toLowerCase().includes(value.toLowerCase()))
-      .slice(0, 10);
-
-    if (filtered.length > 0) {
-      filtered.forEach(item => {
-        const option = document.createElement("div");
-        option.style.padding = "8px";
-        option.style.cursor = "pointer";
-        option.style.borderBottom = "1px solid #eee";
-        option.textContent = item;
-
-        option.addEventListener("mousedown", () => {
-          input.value = item;
-          container.value = item; // Update container's value
-          container.dispatchEvent(new Event("input")); // Dispatch event for Observable
-          clearDropdown();
-        });
-
-        option.addEventListener("mouseover", () => {
-          option.style.background = "#f0f0f0";
-        });
-
-        option.addEventListener("mouseout", () => {
-          option.style.background = "#fff";
-        });
-
-        dropdown.appendChild(option);
-      });
-
-      dropdown.style.display = "block";
-    }
-  }
-
-  // Input event handlers
-  input.addEventListener("input", () => {
-    const val = input.value.trim();
-    updateDropdown(val);
-  });
-
-  input.addEventListener("blur", () => {
-    setTimeout(clearDropdown, 150);
-  });
-
-  return container;
-}
-
-function createAutocomplete__(items = [], {
+function createAutocomplete_old(items = [], {
   searchFields = ["handle", "displayName", "description"],
   formatFn = d => d.handle,
   defaultValue = null,
@@ -432,62 +341,48 @@ function createAutocomplete(items = [], {
 } = {}) {
   const container = document.createElement("div");
   container.style.position = "relative";
-  container.style.width = "500px";
+  container.style.width = "100%";
   container.style.fontFamily = "sans-serif";
-  container.value = ""; 
+  container.value = "";
 
-  // ... (Código para label y description)
-
+  // Create and style the input field
   const input = document.createElement("input");
-  // ... (Estilos y configuración del input)
+  input.type = "text";
+  input.style.width = "100%";
+  input.style.boxSizing = "border-box";
+  input.placeholder = "Type to search...";
+  input.style.padding = "8px";
+  input.style.border = "1px solid #ccc";
+  input.style.borderRadius = "4px";
   container.appendChild(input);
 
+  // Create the dropdown container
   const dropdown = document.createElement("div");
-  dropdown.style.position = "absolute";
-  dropdown.style.width = "100%";
-  dropdown.style.boxSizing = "border-box";
-  dropdown.style.border = "1px solid #ccc";
-  dropdown.style.borderTop = "none";
-  dropdown.style.background = "#fff";
+  dropdown.style.position = "fixed"; // Ensure dropdown stays visible
   dropdown.style.zIndex = "999";
   dropdown.style.display = "none";
-  dropdown.style.maxHeight = "300px";
+  dropdown.style.maxHeight = "50vh"; // Limit height for mobile
   dropdown.style.overflowY = "auto";
-  dropdown.style.borderRadius = "4px";
-  dropdown.style.whiteSpace = "nowrap";
-  dropdown.style.top = "100%";
+  dropdown.style.border = "1px solid #ccc";
+  dropdown.style.background = "#fff";
+  dropdown.style.boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)";
   container.appendChild(dropdown);
 
-  // Establecer valor predeterminado si se proporciona
-  if (defaultValue) {
-    input.value = defaultValue;
-    container.value = defaultValue;
-    container.dispatchEvent(new Event("input"));
-  }
-
-  // Función para ajustar la posición del dropdown
+  // Update the dropdown position dynamically
   function updateDropdownPosition() {
     const rect = input.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    if (spaceBelow < 200 && spaceAbove > spaceBelow) {
-      // Mostrar encima del input
-      dropdown.style.bottom = `${input.offsetHeight}px`;
-      dropdown.style.top = "auto";
-    } else {
-      // Mostrar debajo del input
-      dropdown.style.top = "100%";
-      dropdown.style.bottom = "auto";
-    }
+    dropdown.style.top = `${rect.bottom}px`;
+    dropdown.style.left = `${rect.left}px`;
+    dropdown.style.width = `${rect.width}px`;
   }
 
+  // Clear the dropdown content
   function clearDropdown() {
     dropdown.innerHTML = "";
     dropdown.style.display = "none";
   }
 
+  // Update the dropdown with filtered options
   function updateDropdown(value) {
     clearDropdown();
     if (!value) return;
@@ -506,60 +401,52 @@ function createAutocomplete(items = [], {
         option.style.padding = "8px";
         option.style.cursor = "pointer";
         option.style.borderBottom = "1px solid #eee";
-        option.style.whiteSpace = "nowrap";
         option.textContent = formatFn(d);
 
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        const selectEvent = isTouchDevice ? 'touchstart' : 'mousedown';
-
-        option.addEventListener(selectEvent, () => {
-          input.value = d.handle;
+        // Handle selection
+        option.addEventListener("mousedown", () => {
+          input.value = d.handle; // Display only the handle in the input
           container.value = d.handle;
           container.dispatchEvent(new Event("input"));
           clearDropdown();
-        });
-
-        option.addEventListener("mouseover", () => {
-          option.style.background = "#f0f0f0";
-        });
-
-        option.addEventListener("mouseout", () => {
-          option.style.background = "#fff";
         });
 
         dropdown.appendChild(option);
       });
 
       dropdown.style.display = "block";
-      updateDropdownPosition(); // Actualiza la posición al mostrar el dropdown
+      updateDropdownPosition(); // Ensure dropdown is positioned correctly
     }
   }
 
+  // Handle focus: clear the input text but keep the selected value stable
   input.addEventListener("focus", () => {
     if (input.value === container.value) {
-      input.value = "";
+      input.value = ""; // Clear the input to start a new search
     }
-
-    // Desplaza el input a la vista
-    setTimeout(() => {
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 300);
+    updateDropdownPosition();
   });
 
+  // Handle input: update dropdown dynamically
   input.addEventListener("input", () => {
-    const val = input.value.trim();
-    updateDropdown(val);
+    updateDropdown(input.value.trim());
   });
 
+  // Handle blur: clear dropdown after a delay
   input.addEventListener("blur", () => {
     setTimeout(clearDropdown, 150);
   });
 
-  // Actualiza la posición del dropdown al redimensionar la ventana
-  window.addEventListener("resize", updateDropdownPosition);
+  // Set default value if provided
+  if (defaultValue) {
+    input.value = defaultValue;
+    container.value = defaultValue;
+    container.dispatchEvent(new Event("input"));
+  }
 
   return container;
 }
+
 
 
 
