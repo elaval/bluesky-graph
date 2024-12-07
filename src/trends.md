@@ -169,6 +169,7 @@ const chart = (() => {
     subtitle: toggleInicio && `La línea roja punteada es una proyección desde el momento de creación de la cuenta hasta el inicio del monitoreo.` || `La escala de tiempo se inicia cuando comenzó el monitoreo para esta cuenta`,
     caption: `Fuente de datos: Datos recolectados por @elava.bsky.social utilizano API de Bluesahy (repositorio https://github.com/elaval/BskyFollowersTrend)`,
     height: 500,
+    marginRight:50,
     x: { type: "time", label:"Fecha" },
     y: { tickFormat: "d", grid: true, type: "linear" , zero:true, label:"# de seguidores"},
     marks: [
@@ -190,7 +191,14 @@ const chart = (() => {
         fill: "handle",
         tip: true,
         title: d => `${moment.utc(d.timestamp).format("DD MMM YYY HH:mm")}\n${d3.format("d")(d.followers_count)} seguidores`
-      })
+      }),
+      Plot.text(dataPlot, Plot.selectLast({
+        x: d => moment(d.timestamp).toDate(),
+        y: d => +d.followers_count,
+        text: d => `${d3.format("d")(d.followers_count)}`, 
+        textAnchor:"start",
+        dx:5
+      }))
     ]
   });
 })();
