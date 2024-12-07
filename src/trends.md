@@ -289,7 +289,7 @@ function createAutocomplete_(items = []) {
   return container;
 }
 
-function createAutocomplete(items = [], {
+function createAutocomplete__(items = [], {
   searchFields = ["handle", "displayName", "description"],
   formatFn = d => d.handle,
   defaultValue = null,
@@ -408,6 +408,106 @@ function createAutocomplete(items = [], {
   input.addEventListener("focus", () => {
     // Clear the visible text, but keep the currently selected value in container.value stable
     input.value = "";
+  });
+
+  input.addEventListener("input", () => {
+    const val = input.value.trim();
+    updateDropdown(val);
+  });
+
+  input.addEventListener("blur", () => {
+    setTimeout(clearDropdown, 150);
+  });
+
+  return container;
+}
+
+
+function createAutocomplete(items = [], {
+  searchFields = ["handle", "displayName", "description"],
+  formatFn = d => d.handle,
+  defaultValue = null,
+  label = null,
+  description = null
+} = {}) {
+  const container = document.createElement("div");
+  container.style.position = "relative";
+  container.style.width = "100%";
+  container.style.fontFamily = "sans-serif";
+  container.value = ""; 
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.style.width = "100%";
+  input.style.boxSizing = "border-box";
+  input.placeholder = "Type to search...";
+  input.style.padding = "8px";
+  input.style.border = "1px solid #ccc";
+  input.style.borderRadius = "4px";
+  container.appendChild(input);
+
+  const dropdown = document.createElement("div");
+  dropdown.style.position = "fixed"; // Cambiado a 'fixed'
+  dropdown.style.background = "#fff";
+  dropdown.style.zIndex = "999";
+  dropdown.style.display = "none";
+  dropdown.style.maxHeight = "300px"; 
+  dropdown.style.overflowY = "auto";
+  dropdown.style.border = "1px solid #ccc";
+  dropdown.style.borderRadius = "0 0 4px 4px";
+  dropdown.style.whiteSpace = "nowrap";
+  container.appendChild(dropdown);
+
+  function clearDropdown() {
+    dropdown.innerHTML = "";
+    dropdown.style.display = "none";
+  }
+
+  function updateDropdown(value) {
+    clearDropdown();
+    if (!value) return;
+
+    const lowerVal = value.toLowerCase();
+    const filtered = items
+      .filter(d => searchFields.some(field => {
+        const fieldValue = d[field];
+        return fieldValue && fieldValue.toString().toLowerCase().includes(lowerVal);
+      }))
+      .slice(0, 10);
+
+    if (filtered.length > 0) {
+      filtered.forEach(d => {
+        const option = document.createElement("div");
+        option.style.padding = "8px";
+        option.style.cursor = "pointer";
+        option.style.borderBottom = "1px solid #eee";
+        option.textContent = formatFn(d);
+
+        option.addEventListener("touchstart", () => { // Usa touchstart para móviles
+          input.value = d.handle;
+          container.value = d.handle;
+          container.dispatchEvent(new Event("input"));
+          clearDropdown();
+        });
+
+        dropdown.appendChild(option);
+      });
+
+      dropdown.style.display = "block";
+      updateDropdownPosition(); // Asegura que el dropdown esté correctamente posicionado
+    }
+  }
+
+  function updateDropdownPosition() {
+    const rect = input.getBoundingClientRect();
+    dropdown.style.top = `${rect.bottom}px`;
+    dropdown.style.left = `${rect.left}px`;
+    dropdown.style.width = `${rect.width}px`;
+  }
+
+  input.addEventListener("focus", () => {
+    input.scrollIntoView({ behavior: "smooth", block: "center" });
+    updateDropdownPosition();
   });
 
   input.addEventListener("input", () => {
