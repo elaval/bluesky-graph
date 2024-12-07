@@ -66,7 +66,7 @@ const umbralSeguidores = 1000;
 <div>
 
 ```js
-const selectOptions = _.chain(myFollowers)
+const selectOptions = _.chain(allFollowers)
 .filter( (d) => numberOfLinks(d) > 0)
 .sortBy(d => d)
 .value();
@@ -258,6 +258,23 @@ const myFollowers = (() => {
     .value();
 })()
 
+
+
+```
+
+```js
+const allFollowers = (() => {
+  return _.chain(graph_raw.links)
+    .groupBy(d => d.target)
+    .map((items,key) => ({
+      target: key,
+      maxFollowers:_.chain(items).map(d => nodesDict[d.source]["followers_count"]).max().value()
+    }))
+    .filter(d => d.maxFollowers >= umbralSeguidores)
+    .map(d => d.target)
+    .uniq()
+    .value();
+})()
 
 
 ```
