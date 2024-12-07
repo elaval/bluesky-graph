@@ -5,7 +5,23 @@ sql:
   followers_log: https://raw.githubusercontent.com/elaval/BskyFollowersTrend/refs/heads/main/followers_log.parquet
 ---
 
+<style type="text/css">
 
+p,
+table,
+figure,
+figcaption,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.katex-display {
+  max-width: none;
+}
+
+</style>
 
 ```sql id=master 
 -- Fetch the master data: Basic user information, including handle, followers_count, etc.
@@ -21,18 +37,25 @@ SELECT * FROM followers_log
 const defaultUser = `elaval.bsky.social`
 ```
 
-## Número de seguidores en Bluesky
-### Línea de tiempo
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12">
+    
+# Número de seguidores en Bluesky
+## Evolución en el tiempo
 
-*Ultima actualización: ${moment.utc(_.chain([...master]).map(d => d.timestamp).max().value()).format("D MMM YYYY, HH:mm")}*
+**Última actualización:** ${moment.utc(_.chain([...master]).map(d => d.timestamp).max().value()).format("D MMM YYYY, HH:mm")}
 
-¿Quieres saber cómo ha evolucionado el número de tus seguidores en el tiempo?
+¿Te interesa conocer cómo ha evolucionado el número de tus seguidores a lo largo del tiempo?
 
-Desde el 4 de Diciembre de 2024 un proceso automático monitorea 4 veces al día el número de seguidores que tiene un conjunto de cuentas en Bluesky y almacena los datos.  Esta página muestra la evolución en el tiempo del número de seguidores para alguna de las cuentas monitoreadas.  
+Desde el 4 de diciembre de 2024, un proceso automático monitorea cuatro veces al día la cantidad de seguidores de un conjunto de cuentas en Bluesky y almacena estos datos. Esta página muestra cómo varía el número de seguidores de las cuentas monitoreadas a lo largo del tiempo.
 
-Las cuentas monitoreadas, por ahora, son aquellas que siguen [@elaval.bsky.social](https://bsky.app/profile/elaval.bsky.social) y el monitoreo se inició el 4 de Diciembre de 2024 (o el día que empezaron a seguir a @elaval.bsky.social si es posterior a esa fecha).  
+Por el momento, se incluyen las cuentas que siguen a [@elaval.bsky.social](https://bsky.app/profile/elaval.bsky.social). El monitoreo comenzó el 4 de diciembre de 2024, o bien el día en que la cuenta empezó a seguir a @elaval.bsky.social si esto ocurrió después de esa fecha.
 
-Este es una exploración para analizar el comportamiento de seguidores en Bluesky y probar maneras de presentar y compartir la información.  En el futuro pueden haber moficicaciones a la frecuencia de monitoreo o a los criterios para configurar la lista de cuentas a monitorear (por ahora es una manera simple de partir)
+Este proyecto es una exploración destinada a analizar el comportamiento de los seguidores en Bluesky y a probar distintos métodos para presentar y compartir la información. En el futuro, podrían realizarse modificaciones en la frecuencia de monitoreo o en los criterios utilizados para seleccionar las cuentas a seguir (por ahora la intención es partir de una base sencilla).
+
+    
+
 
 
 ```js
@@ -92,6 +115,8 @@ const selectedUser = view(createAutocomplete(_.sortBy([...master], d => d.handle
 ${chart}
 </div>
 
+  </div>
+</div>
 
 
 
