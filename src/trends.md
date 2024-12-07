@@ -331,122 +331,113 @@ function createAutocomplete_old(items = [], {
   return container;
 }
 
-
 function createAutocomplete(items = [], {
   searchFields = ["handle", "displayName", "description"],
-  formatFn = d => d.handle,
+  formatFn = d => `${d.handle} - ${d.displayName} (${d.description})`,
   defaultValue = null,
   label = null,
-  description = null
+  description = null,
+  placeholderText = "Type to search...",
+  fetchAutoSuggest = async (value) => {
+    // Simulate fetching filtered results
+    return items.filter(d => searchFields.some(field => {
+      const fieldValue = d[field];
+      return fieldValue && fieldValue.toString().toLowerCase().includes(value.toLowerCase());
+    })).slice(0, 10); // Limit results
+  }
 } = {}) {
-  const container = document.createElement("div");
-  container.style.position = "relative";
-  container.style.width = "100%";
-  container.style.fontFamily = "sans-serif";
-  container.value = "";
+  // Create the form container
+  const form = document.createElement("form");
+  form.style.position = "relative";
+  form.style.width = "100%";
+  form.style.fontFamily = "sans-serif";
+  form.onsubmit = (event) => event.preventDefault();
 
-  // Create and style the input field
+  // Add label if provided
+  if (label) {
+    const labelEl = document.createElement("label");
+    labelEl.textContent = label;
+    labelEl.style.display = "block";
+    labelEl.style.marginBottom = "4px";
+    labelEl.style.fontWeight = "bold";
+    form.appendChild(labelEl);
+  }
+
+  // Add description if provided
+  if (description) {
+    const descEl = document.createElement("div");
+    descEl.textContent = description;
+    descEl.style.fontSize = "0.9em";
+    descEl.style.color = "#555";
+    descEl.style.marginBottom = "8px";
+    form.appendChild(descEl);
+  }
+
+  // Create the input field
   const input = document.createElement("input");
   input.type = "text";
+  input.placeholder = placeholderText;
   input.style.width = "100%";
   input.style.boxSizing = "border-box";
-  input.placeholder = "Type to search...";
   input.style.padding = "8px";
   input.style.border = "1px solid #ccc";
   input.style.borderRadius = "4px";
-  container.appendChild(input);
+  input.value = defaultValue || "";
+  form.appendChild(input);
 
-  // Create the dropdown container
-  const dropdown = document.createElement("div");
-  dropdown.style.position = "fixed"; // Ensure dropdown stays visible
-  dropdown.style.zIndex = "999";
-  dropdown.style.display = "none";
-  dropdown.style.maxHeight = "50vh"; // Limit height for mobile
-  dropdown.style.overflowY = "auto";
-  dropdown.style.border = "1px solid #ccc";
-  dropdown.style.background = "#fff";
-  dropdown.style.boxShadow = "0px 4px 6px rgba(0, 0, 0, 0.1)";
-  container.appendChild(dropdown);
+  // Create the datalist for suggestions
+  const datalist = document.createElement("datalist");
+  datalist.id = `autosuggest-results-${Math.random().toString(36).substr(2, 9)}`;
+  input.setAttribute("list", datalist.id);
+  form.appendChild(datalist);
 
-  // Update the dropdown position dynamically
-  function updateDropdownPosition() {
-    const rect = input.getBoundingClientRect();
-    dropdown.style.top = `${rect.bottom}px`;
-    dropdown.style.left = `${rect.left}px`;
-    dropdown.style.width = `${rect.width}px`;
-  }
+  // Store the current value
+  form.value = defaultValue || "";
 
-  // Clear the dropdown content
-  function clearDropdown() {
-    dropdown.innerHTML = "";
-    dropdown.style.display = "none";
-  }
+  // Handle input change (selection made from the dropdown)
+  input.onchange = (event) => {
+    const value = event.target.value;
 
-  // Update the dropdown with filtered options
-  function updateDropdown(value) {
-    clearDropdown();
+    // Find the selected item and set the handle only
+    const selectedItem = items.find(d => formatFn(d) === value);
+    if (selectedItem) {
+      form.value = selectedItem.handle; // Set the handle as the value
+      input.value = selectedItem.handle; // Update input to show only the handle
+    } else {
+      form.value = value; // Fallback to raw input value
+    }
+
+    input.blur(); // Dismiss keyboard (mobile)
+    form.dispatchEvent(new CustomEvent("input"));
+  };
+
+  // Handle input event for suggestions
+  input.oninput = async (event) => {
+    const value = event.target.value.trim();
     if (!value) return;
 
-    const lowerVal = value.toLowerCase();
-    const filtered = items
-      .filter(d => searchFields.some(field => {
-        const fieldValue = d[field];
-        return fieldValue && fieldValue.toString().toLowerCase().includes(lowerVal);
-      }))
-      .slice(0, 10);
+    // Fetch suggestions
+    const results = await fetchAutoSuggest(value);
 
-    if (filtered.length > 0) {
-      filtered.forEach(d => {
-        const option = document.createElement("div");
-        option.style.padding = "8px";
-        option.style.cursor = "pointer";
-        option.style.borderBottom = "1px solid #eee";
-        option.textContent = formatFn(d);
+    // Clear existing suggestions
+    datalist.innerHTML = "";
 
-        // Handle selection
-        option.addEventListener("mousedown", () => {
-          input.value = d.handle; // Display only the handle in the input
-          container.value = d.handle;
-          container.dispatchEvent(new Event("input"));
-          clearDropdown();
-        });
+    // Populate datalist with new suggestions
+    results.forEach((result) => {
+      const formattedResult = formatFn(result);
+      const option = document.createElement("option");
+      option.value = formattedResult; // Full formatFn output
+      datalist.appendChild(option);
+    });
+  };
 
-        dropdown.appendChild(option);
-      });
+  // Clear input on focus
+  input.onfocus = () => {
+    input.value = ""; // Clear the input so the user can type a new search
+  };
 
-      dropdown.style.display = "block";
-      updateDropdownPosition(); // Ensure dropdown is positioned correctly
-    }
-  }
-
-  // Handle focus: clear the input text but keep the selected value stable
-  input.addEventListener("focus", () => {
-    if (input.value === container.value) {
-      input.value = ""; // Clear the input to start a new search
-    }
-    updateDropdownPosition();
-  });
-
-  // Handle input: update dropdown dynamically
-  input.addEventListener("input", () => {
-    updateDropdown(input.value.trim());
-  });
-
-  // Handle blur: clear dropdown after a delay
-  input.addEventListener("blur", () => {
-    setTimeout(clearDropdown, 150);
-  });
-
-  // Set default value if provided
-  if (defaultValue) {
-    input.value = defaultValue;
-    container.value = defaultValue;
-    container.dispatchEvent(new Event("input"));
-  }
-
-  return container;
+  return form;
 }
-
 
 
 
