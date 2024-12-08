@@ -56,9 +56,7 @@ if ([...master].length > 0) {
 # Número de seguidores en Bluesky
 ## Evolución en el tiempo
 
-***${loaded ? '' : 'Cargando datos...'}***
-
-**Última actualización:** ${moment(_.chain([...master]).map(d => d.timestamp).max().value()).format("D MMM YYYY, HH:mm")}
+**${loaded ? 'Última actualización:' : 'Cargando datos...'}** ${moment(_.chain([...master]).map(d => d.timestamp).max().value()).format("D MMM YYYY, HH:mm")}
 
 ¿Te interesa conocer cómo ha evolucionado el número de tus seguidores a lo largo del tiempo?  
 
