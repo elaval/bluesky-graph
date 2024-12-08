@@ -37,12 +37,26 @@ SELECT * FROM followers_log
 const defaultUser = `elaval.bsky.social`
 ```
 
+```js
+const loaded = Mutable(false);
+const reset = () => loaded.value = true;
+```
+
+```js
+if ([...master].length > 0) {
+  reset()
+}
+
+```
+
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-12">
     
 # Número de seguidores en Bluesky
 ## Evolución en el tiempo
+
+***${loaded ? '' : 'Cargando datos...'}***
 
 **Última actualización:** ${moment(_.chain([...master]).map(d => d.timestamp).max().value()).format("D MMM YYYY, HH:mm")}
 
