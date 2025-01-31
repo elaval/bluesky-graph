@@ -3,10 +3,10 @@ name: Deploy
 on:
   # Run this workflow whenever a new commit is pushed to main.
   push: {branches: [main]}
-  # Run this workflow once per day, at 10:15 UTC
-  
-  # Run this workflow when triggered manually in GitHub’s UI.
-  workflow_dispatch: {}
+  schedule:
+    - cron: "0 */6 * * *"  # Runs daily at midnight UTC
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
 
 permissions:
   contents: read
